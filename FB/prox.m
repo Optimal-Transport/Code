@@ -41,8 +41,9 @@ function z = prox(y,m,n, tol)
 
         % The indicator evaluation is too hard for double precision arithmetic.
         % Thus, we relax this condition:
-        if all(abs(sum(z,1) - m') < 1e-10)
-            if all(abs(sum(z,2) - n) < 1e-10)
+        if all(abs(sum(abs(z),1) - m') < 1e-10)
+            if all(abs(sum(abs(z),2) - n) < 1e-10)
+                z = abs(z);
                break 
             end
         end

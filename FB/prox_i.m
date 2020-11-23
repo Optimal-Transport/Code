@@ -7,18 +7,18 @@ function [z,v_1, v_2] = prox_i(y,m,n, v_1,v_2, tol)
 % By default, tol = 1e-10.
 
     if nargin < 6
-        tol = 1e-10;
+        tol = 1e-6;
     end
     
     % Recover size of matrix
     M = length(m);
     N = length(n);
     
-    % ? is selected as the midpoint of the interval
-    ep = 0.5;
+    % epsilon is selected as a small number
+    ep = 0.1;
 
-    % Define ? as a fixed value
-    the = 1.5;      %% 1.9
+    % Define theta as a fixed value
+    the = 2 - ep;
     ith = 1/the;
 
     % Initialise z:
@@ -35,8 +35,8 @@ function [z,v_1, v_2] = prox_i(y,m,n, v_1,v_2, tol)
 
         % The indicator evaluation is too hard for double precision arithmetic.
         % Thus, we relax this condition:
-        if all(abs(sum(abs(z),1) - n') < 1e-10)      %% Check with lower tol & normalise
-            if all(abs(sum(abs(z),2) - m) < 1e-10)
+        if all(abs(sum(abs(z),1) - n')./n' < tol)      %% Check with lower tol
+            if all(abs(sum(abs(z),2) - m)./m < tol)
                 z = abs(z);
                break 
             end

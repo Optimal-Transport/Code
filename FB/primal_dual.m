@@ -9,7 +9,7 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
 % n:   discrete probability vector of size N
 % tol: numerical tolerance of the algorithm: it stops if the norm between a
 %      pair of iterations is less than this value (default tol = 1e-4)
-%      
+%
 % **Output:**
 % x:    best feasible point found after optimisation
 % obj:  objective value at x
@@ -17,7 +17,7 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
 % temp: time it took to compute x
 %%
 
-    if nargin < 6
+    if nargin < 4
         tol = 1e-4;
     end
     % Recover M and N
@@ -64,7 +64,7 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
         x   = u;
         y_1 = v_1;
         y_2 = v_2;
-        
+
         if norm_difference < tol * norm(u)
             break
         end
@@ -74,17 +74,4 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
     temp = toc(tStart);
     obj  = sum(sum(c.*x));
     % See order of magnitude and number of iterations
-    [log(norm_difference)/log(10), it]  
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    [log(norm_difference)/log(10), it]

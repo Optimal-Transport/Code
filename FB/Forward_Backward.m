@@ -9,20 +9,20 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
 % n:   discrete probability vector of size N
 % tol: numerical tolerance of the algorithm: it stops if the norm between a
 %      pair of iterations is less than this value (default tol = 1e-4)
-%      
+%
 % **Output:**
 % x:    best feasible point found after optimisation
 % obj:  objective value at x
 % temp: time it took to compute x
 %%
 
-    if nargin < 6
+    if nargin < 4
         tol = 1e-4;
     end
     % Recover M and N
     M = length(m);
     N = length(n);
-    
+
     % First compute ?
     mu = 1000;%norm(c,2);        %% 1 -> 10^-1 -> 10^-2 -> ...
     % ? is selected as the midpoint of the interval
@@ -32,8 +32,8 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
     % likewise, we do not require a change in ?
     lam = 0.5 * (1 + e);   %% 1.0
 
-    %% 
-    % x_0 is projected to be a feasible initial point 
+    %%
+    % x_0 is projected to be a feasible initial point
     %%
     %x = (m' + n)/(N+M);
     x = zeros(M,N);
@@ -48,7 +48,7 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
     v_2(1,:) = n;
     % Compute proximal operator at C and update v_1 and v_2
     [x, v_1, v_2] = prox_i(x,m,n,v_1,v_2);
-    
+
     % iters controls the number of iterations
     iters = 100;                                 %% increase
     % The distance between points will serve as stopping criteria
@@ -57,7 +57,7 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
     obj = Inf;
     % Measure time
     tStart = tic;
-    
+
     %% Now we perform the FB iteration:
     for it = 1:iters
         y = x - gam * c;                            % gam = 10 takes > 10 min for second instance
@@ -73,25 +73,6 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
     % Update time clock
     temp = toc(tStart);
     obj  = sum(sum(c.*x));
-    
+
     % See order of magnitude and number of iterations
-    [log(norm_difference)/log(10), it]  
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    [log(norm_difference)/log(10), it]

@@ -9,25 +9,25 @@ function [x,obj,temp] = FISTA(c,m,n,tol)
 % n:   discrete probability vector of size N
 % tol: numerical tolerance of the algorithm: it stops if the norm between a
 %      pair of iterations is less than this value (default tol = 1e-4)
-%      
+%
 % **Output:**
 % x:    best feasible point found after optimisation
 % obj:  objective value at x
 % temp: time it took to compute x
 %%
 
-    if nargin < 6
+    if nargin < 4
         tol = 1e-4;
     end
     % Recover M and N
     M = length(m);
     N = length(n);
-    
+
     % First select $\mu$
     mu  = 100000;%norm(c,2);        %% 1 -> 10^-1 -> 10^-2 -> ...
     gam = 1/mu;
 
-    %% x_0 is projected to be a feasible initial point 
+    %% x_0 is projected to be a feasible initial point
     %x = (m' + n)/(N+M);
     x = zeros(M,N);
     x(:,1) = m;
@@ -44,7 +44,7 @@ function [x,obj,temp] = FISTA(c,m,n,tol)
     % z_0 is a copy of x_0
     z = x;
     t = 1.0;
-    
+
     %% Controls
     % iters controls the number of iterations
     iters = 100;                                 %% increase
@@ -54,7 +54,7 @@ function [x,obj,temp] = FISTA(c,m,n,tol)
     %obj = Inf;
     % Measure time
     tStart = tic;
-    
+
     %% Now we perform the FISTA iteration:
     for it = 1:iters
         y = z - gam * c;                            % gam = 10 takes > 10 min for second instance
@@ -71,29 +71,10 @@ function [x,obj,temp] = FISTA(c,m,n,tol)
         if norm_difference < tol * norm(u)
             break
         end
-    end 
+    end
     % Update time clock
     temp = toc(tStart);
     obj  = sum(sum(c.*x));
-    
+
     % See order of magnitude and number of iterations
-    %[log(norm_difference)/log(10), it] 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    %[log(norm_difference)/log(10), it]

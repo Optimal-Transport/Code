@@ -8,7 +8,7 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
 % m:   discrete probability vector of size M
 % n:   discrete probability vector of size N
 % tol: numerical tolerance of the algorithm: it stops if the norm between a
-%      pair of iterations is less than this value (default tol = 1e-10)
+%      pair of iterations is less than this value (default tol = 1e-4)
 %      
 % **Output:**
 % x:    best feasible point found after optimisation
@@ -70,13 +70,12 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
             break
         end
     end
-    % See order of magnitude and number of iterations
-    %[log(norm_difference)/log(10), it]  
-    
     % Update time clock
     temp = toc(tStart);
     obj  = sum(sum(c.*x));
     
+    % See order of magnitude and number of iterations
+    [log(norm_difference)/log(10), it]  
     
     
     

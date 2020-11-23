@@ -18,7 +18,7 @@ function [z,v_1, v_2] = prox_i(y,m,n, v_1,v_2, tol)
     ep = 0.5;
 
     % Define ? as a fixed value
-    the = 1.5;
+    the = 1.5;      %% 1.9
     ith = 1/the;
 
     % Initialise z:
@@ -35,7 +35,7 @@ function [z,v_1, v_2] = prox_i(y,m,n, v_1,v_2, tol)
 
         % The indicator evaluation is too hard for double precision arithmetic.
         % Thus, we relax this condition:
-        if all(abs(sum(abs(z),1) - n') < 1e-10)
+        if all(abs(sum(abs(z),1) - n') < 1e-10)      %% Check with lower tol & normalise
             if all(abs(sum(abs(z),2) - m) < 1e-10)
                 z = abs(z);
                break 

@@ -1,29 +1,34 @@
-function [gam,obj,temp] = entropy_regularisation(m,n,c,eps)
-
-
-    %starting time.
-    tStart = tic;
+function [gam,obj,temp] = Entropy_Regularisation(m,n,c,eps)
+%%
+% Entropy_Regularisation(m,n,c,eps) : Executes the Entropy Regularisation
+% algorithm for problems on optimal transport.
+%
+% **Input:**
+% c:   cost matrix of size MxN
+% m:   discrete probability vector of size M
+% n:   discrete probability vector of size N
+% eps: regularisation constant
+%
+% **Output:**
+% x:    best feasible point found after optimisation
+% obj:  objective value at x
+% temp: time it took to compute x
+%
+%%
+    %Number of iterations
+    iters = 1000; 
     
-    iters = 1000; %Number of iterations.
-    
-    % Fetch lengths of m and n
-    N = length(n);
+    % Fetch M and N
     M = length(m);
-    %Save that objective function
+    N = length(n);
     
-
-    
+    % Compute Gibbs Kernel
     Geps = exp(-c/eps);
-    %Gibbs Kernel
-    %disp(size(Geps))
     
-    cons = 1/sum(sum(Geps));
-    a = ones(M,1)*cons;
-    b = ones(N,1)*cons;
-    %disp(size(a))
-    %disp(size(b))
     %Initialisations
-    
+    cons  = 1/sum(sum(Geps));
+    a     = ones(M,1) * cons;
+    b     = ones(N,1) * cons;
     GepsT = Geps.';
     %Initialising the transpose
     
@@ -32,11 +37,8 @@ function [gam,obj,temp] = entropy_regularisation(m,n,c,eps)
     %obj = [sum(c*gam,'all')];
     %%initial objective calculation
     
-    
-    
-    
-    
-
+    %starting time.
+    tStart = tic;
     for i = 1:iters
         a = m./(Geps*b);
         b = n./(GepsT*a); 
@@ -47,12 +49,11 @@ function [gam,obj,temp] = entropy_regularisation(m,n,c,eps)
         %%objective calculation.
         
     end
-    gam = (b.*((a.*Geps).')); %final gamma
-    obj = sum(c*gam,'all'); 
-    %calculating final objective
+    % Update time clock
+    temp = toc(tStart);
     
-   
-    
-    
-    temp = toc(tStart); %total time
+    % Final gamma
+    gam = (b.*((a.*Geps).')); 
+    obj = sum(c .* gam,'all'); 
+     
 end

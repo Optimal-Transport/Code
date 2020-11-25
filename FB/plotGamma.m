@@ -1,4 +1,4 @@
-function plotGamma(x,y,gamma,n)
+function plotGamma(x,y,gamma,M,N)
 % This function plots the transport plan gamma, where gamma_{i,j} is the
 % mass transported from x_i to y_j
 
@@ -10,7 +10,7 @@ function plotGamma(x,y,gamma,n)
     axis tight
     xlabel('$x$', 'interpreter', 'latex', 'FontSize', 14)
     ylabel('$y$', 'interpreter', 'latex', 'FontSize', 14)
-    title('Mass $\gamma_{i,j}$ transported from $x$ to $y$ with $NM=' + string(n) + "$", ...
+    title('Mass $\gamma_{i,j}$ transported from $x$ to $y$ with $M=' + string(M) + '$ $N=' + string(N) + '$', ...
         'interpreter', 'latex', 'FontSize', 14)
 
 end

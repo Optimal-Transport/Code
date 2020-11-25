@@ -1,4 +1,4 @@
-function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps)
+function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps,collect_obj)
 %%
 % Entropy_Regularisation(m,n,c,eps) : Executes the Entropy Regularisation
 % algorithm for problems on optimal transport.
@@ -8,11 +8,11 @@ function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps)
 % m:   discrete probability vector of size M
 % n:   discrete probability vector of size N
 % eps: regularisation constant (so far the best value has been 0.0025)
+% collect_obj: boolean value; if true, then all objective values are stored
 %
 % **Output:**
 % x:    best feasible point found after optimisation
 % obj:  objective value at x 
-%       (if parameter collect_obj is true, then all iterations are stored)
 % temp: time it took to compute x
 %
 %%
@@ -32,7 +32,6 @@ function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps)
     b     = ones(N,1) * cons;
     
     obj = [];
-    collect_obj = true;
     % initial objective calculation
     if collect_obj
         gam = a.*Geps .* b';

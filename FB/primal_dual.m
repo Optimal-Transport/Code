@@ -13,13 +13,13 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
 % **Output:**
 % x:    best feasible point found after optimisation
 % obj:  objective value at x
+%       (if parameter collect_obj is true, then all iterations are stored)
 % y:    Pair of dual variables
 % temp: time it took to compute x
-%
 %%
 
     if nargin < 4
-        tol = 1e-4;
+        tol = 1e-5;
     end
     % Recover M and N
     M = length(m);
@@ -45,9 +45,16 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
     iters = 1000;                                 %% increase
     % The distance between points will serve as stopping criteria
     %norm_difference = Inf;
+    
+    
     % Objective value
-    %obj = Inf;
-    % Measure time
+    obj = [];
+    collect_obj = true;
+    % initial objective calculation
+    if collect_obj
+        obj = [sum(c.*x,'all')];
+    end
+    
     tStart = tic;
 
     %% Now we perform the Primal-Dual iteration:
@@ -65,6 +72,10 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
         x   = u;
         y_1 = v_1;
         y_2 = v_2;
+        % Store objective if needed
+        if collect_obj
+            obj(end+1) = sum(sum(c.*x));
+        end
 
         if norm_difference < tol * norm(u)
             break
@@ -73,6 +84,6 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
     end
     % Update time clock
     temp = toc(tStart);
-    obj  = sum(sum(c.*x));
+    obj(end+1) = sum(sum(c.*x));
     % See order of magnitude and number of iterations
-    [log(norm_difference)/log(10), it]
+    [log(norm_difference)/log(10), int16(it)]

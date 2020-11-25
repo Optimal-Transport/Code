@@ -7,11 +7,12 @@ function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps)
 % c:   cost matrix of size MxN
 % m:   discrete probability vector of size M
 % n:   discrete probability vector of size N
-% eps: regularisation constant
+% eps: regularisation constant (so far the best value has been 0.0025)
 %
 % **Output:**
 % x:    best feasible point found after optimisation
-% obj:  objective value at x
+% obj:  objective value at x 
+%       (if parameter collect_obj is true, then all iterations are stored)
 % temp: time it took to compute x
 %
 %%
@@ -30,9 +31,13 @@ function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps)
     a     = ones(M,1) * cons;
     b     = ones(N,1) * cons;
     
-    %gam = (b.*((a.*Geps).'));
-    %obj = [sum(c*gam,'all')];
-    %%initial objective calculation
+    obj = [];
+    collect_obj = true;
+    % initial objective calculation
+    if collect_obj
+        gam = a.*Geps .* b';
+        obj = [sum(c.*gam,'all')];
+    end
     
     % Starting time
     tStart = tic;
@@ -41,14 +46,16 @@ function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps)
         a = m./(Geps*b);
         b = n./(a'*Geps)';
         
-        %gam = (b.*((a.*Geps).'));
-        %obj(end+1) = sum(c*gam,'all');
+        if collect_obj
+            gam = a.*Geps .* b';
+            obj(end+1) = sum(c.*gam,'all');
+        end
         
     end
     % Update time clock
     temp = toc(tStart);
     % Final estimation
     x   = a.*Geps .* b';
-    obj = sum(c .* x,'all'); 
+    obj(end+1) = sum(c .* x,'all'); 
     
 end

@@ -26,9 +26,9 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, collect_obj, tol)
     N = length(n);
 
     % Initialise tau
-    tau = 0.5;
+    tau = 0.0001;
     % Initialise sigma
-    sig = 0.5;
+    sig = 1/(tau * 2) - 0.5;
     % Invert sigma
     isig = 1/sig;
 

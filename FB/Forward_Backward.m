@@ -1,4 +1,4 @@
-function [x,obj,temp] = Forward_Backward(c,m,n,tol)
+function [x,obj,temp] = Forward_Backward(c,m,n,collect_obj,tol)
 %%
 % Forward_Backward(c,m,n,tol) : Executes the Forward-Backward algorithm
 % applied to problems on optimal transport.
@@ -7,6 +7,7 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
 % c:   cost matrix of size MxN
 % m:   discrete probability vector of size M
 % n:   discrete probability vector of size N
+% collect_obj: boolean value; if true, then all objective values are stored
 % tol: numerical tolerance of the algorithm: it stops if the norm between a
 %      pair of iterations is less than this value (default tol = 1e-4)
 %
@@ -16,7 +17,7 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
 % temp: time it took to compute x
 %%
 
-    if nargin < 4
+    if nargin < 5
         tol = 1e-4;
     end
     % Recover M and N
@@ -54,7 +55,12 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
     % The distance between points will serve as stopping criteria
     norm_difference = Inf;
     % Objective value
-    obj = Inf;
+    obj = [];
+    % initial objective calculation
+    if collect_obj
+        obj = [sum(c.*x,'all')];
+    end
+    
     % Measure time
     tStart = tic;
 
@@ -66,13 +72,18 @@ function [x,obj,temp] = Forward_Backward(c,m,n,tol)
         u = (1-lam) * x + lam * y;
         norm_difference = norm(x-u);
         x = u;
+        % Store objective if needed
+        if collect_obj
+            obj(end+1) = sum(sum(c.*x));
+        end
+        % Check tolerance
         if norm_difference < tol * norm(u)
             break
         end
     end
     % Update time clock
     temp = toc(tStart);
-    obj  = sum(sum(c.*x));
+    obj(end+1) = sum(sum(c.*x));
 
     % See order of magnitude and number of iterations
     [log(norm_difference)/log(10), it]

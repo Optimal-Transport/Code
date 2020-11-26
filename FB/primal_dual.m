@@ -1,4 +1,4 @@
-function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
+function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, collect_obj, tol)
 %%
 % Primal_Dual(c, m, n, tol) : Executes the Primal-Dual algorithm
 % applied to problems on optimal transport.
@@ -7,18 +7,18 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
 % c:   cost matrix of size MxN
 % m:   discrete probability vector of size M
 % n:   discrete probability vector of size N
+% collect_obj: boolean value; if true, then all objective values are stored
 % tol: numerical tolerance of the algorithm: it stops if the norm between a
 %      pair of iterations is less than this value (default tol = 1e-4)
 %
 % **Output:**
 % x:    best feasible point found after optimisation
 % obj:  objective value at x
-%       (if parameter collect_obj is true, then all iterations are stored)
 % y:    Pair of dual variables
 % temp: time it took to compute x
 %%
 
-    if nargin < 4
+    if nargin < 5
         tol = 1e-5;
     end
     % Recover M and N
@@ -49,7 +49,6 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, tol)
     
     % Objective value
     obj = [];
-    collect_obj = true;
     % initial objective calculation
     if collect_obj
         obj = [sum(c.*x,'all')];

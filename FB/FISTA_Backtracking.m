@@ -1,6 +1,6 @@
-function [x,obj,temp] = FISTA(c,m,n,collect_obj,tol)
+function [x,obj,temp] = FISTA_Backtracking(c,m,n,collect_obj,tol)
 %%
-% FISTA(c,m,n,collect_obj,tol): Executes the FISTA algorithm
+% FISTA_Backtracking(c,m,n,collect_obj,tol): Executes the FISTA algorithm
 % applied to problems on optimal transport.
 %
 % **Input:**
@@ -25,7 +25,7 @@ function [x,obj,temp] = FISTA(c,m,n,collect_obj,tol)
     N = length(n);
 
     % First select $\mu$
-    mu  = 100000;%norm(c,2);        %% 1 -> 10^-1 -> 10^-2 -> ...
+    mu  = 1e+3;%norm(c,2);        %% 1 -> 10^-1 -> 10^-2 -> ...
     gam = 1/mu;
 
     %% x_0 is projected to be a feasible initial point
@@ -63,9 +63,19 @@ function [x,obj,temp] = FISTA(c,m,n,collect_obj,tol)
 
     %% Now we perform the FISTA iteration:
     for it = 1:iters
-        y = z - gam * c;                            % gam = 10 takes > 10 min for second instance
+        
+        % First proximal projection
+        y = z - gam * c;
         % Proximal operation
         [u, v_1, v_2] = prox_i(y,m,n,v_1,v_2);
+        
+        while 4 * sum(c.*(u-z), 'all') > mu * sumsqr( u - x )
+            mu  = mu * 2;
+            gam = 0.5 * gam;
+            y = z - gam * c;
+            [u, v_1, v_2] = prox_i(y,m,n,v_1,v_2);
+        end
+        
         % Update momentum
         s = 0.5 * ( 1.0 + sqrt( 1 + 4*t^2 ) );
         l = 1 + (t - 1)/s;

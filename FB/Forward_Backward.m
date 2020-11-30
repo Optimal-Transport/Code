@@ -1,7 +1,7 @@
 function [x,obj,temp] = Forward_Backward(c,m,n,collect_obj,tol)
 %%
-% Forward_Backward(c,m,n,tol) : Executes the Forward-Backward algorithm
-% applied to problems on optimal transport.
+% Forward_Backward(c,m,n,collect_obj,tol) : Executes the Forward-Backward 
+% algorithm applied to problems on optimal transport.
 %
 % **Input:**
 % c:   cost matrix of size MxN

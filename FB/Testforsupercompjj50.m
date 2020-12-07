@@ -23,8 +23,8 @@ verb = true;  % Return objective evaluation at each point
 temp(end+1) = temp_fb;
 obj(end+1)  = obj_fb(end);
 
-save('Results/FB-Temp.mat', 'temp')
-save('Results/FB-Obj.mat', 'obj')
+save('Results/jj50/FB-Temp.mat', 'temp_fb')
+save('Results/jj50/FB-Obj.mat', 'obj_fb')
 
 
 %% Forward-Backwards with backtracking
@@ -35,8 +35,8 @@ verb = true;  % Return objective evaluation at each point
 temp(end+1) = temp_fbb;
 obj(end+1)  = obj_fbb(end);
 
-save('Results_jj50/FBbacktrack-Temp.mat', 'temp')
-save('Results_jj50/FBbacktrack-Obj.mat', 'obj')
+save('Results/jj50/FBbacktrack-Temp.mat', 'temp_fbb')
+save('Results/jj50/FBbacktrack-Obj.mat', 'obj_fbb')
 
 %% FISTA
 % Run algorithm Fista
@@ -44,11 +44,11 @@ verb = true;  % Return objective evaluation at each point
 %%
 [x_fi,obj_fi,temp_fi] = FISTA(c,m,n,verb, 5e-5);
 
-temp(end+1) = temp_fbb;
-obj(end+1)  = obj_fbb(end);
+temp(end+1) = temp_fi;
+obj(end+1)  = obj_fi(end);
 
-save('Results/Fista-Temp.mat', 'temp')
-save('Results/Fista-Obj.mat', 'obj')
+save('Results/jj50/Fista-Temp.mat', 'temp_fi')
+save('Results/jj50/Fista-Obj.mat', 'obj_fi')
 
 
 %% FISTA with backtrack
@@ -56,22 +56,22 @@ save('Results/Fista-Obj.mat', 'obj')
 verb = true;  % Return objective evaluation at each point
 [x_fib,obj_fib,temp_fib] = FISTA_Backtracking(c,m,n,verb, 5e-5);
 
-temp(end+1) = temp_fbb;
-obj(end+1)  = obj_fbb(end);
+temp(end+1) = temp_fib;
+obj(end+1)  = obj_fib(end);
 
-save('Results_jj50/Fistawbacktrack-Temp.mat', 'temp')
-save('Results_jj50/Fistawbacktrack-Obj.mat', 'obj')
+save('Results/jj50/Fistawbacktrack-Temp.mat', 'temp_fib')
+save('Results/jj50/Fistawbacktrack-Obj.mat', 'obj_fib')
 
 %% Primal-Dual
 % Run algorithm
 %%
 [x_pd, obj_pd, y_1, y_2, temp_pd] = Primal_Dual(c, m, n, true, 5e-5);
 
-temp(end+1) = temp_fbb;
-obj(end+1)  = obj_fbb(end);
+temp(end+1) = temp_pd;
+obj(end+1)  = obj_pd(end);
 
-save('Results/Primaldual-Temp.mat', 'temp')
-save('Results/Primaldual-Obj.mat', 'obj')
+save('Results/jj50/Primaldual-Temp.mat', 'temp_pd')
+save('Results/jj50/Primaldual-Obj.mat', 'obj_pd')
 
 %%%%%%%%%%%%%%%
 % Lin progr system Ax = b
@@ -87,11 +87,8 @@ temp_lp = toc(tStart);
 temp(end+1) = temp_lp;
 obj(end+1) = sum(fval);
 
-temp(end+1) = temp_fbb;
-obj(end+1)  = obj_fbb(end);
-
-save('Results_jj50/Linearprog-Temp.mat', 'temp')
-save('Results_jj50/Linearprog-Obj.mat', 'obj')
+save('Results/jj50/Linearprog-Temp.mat', 'temp_lp')
+save('Results/jj50/Linearprog-Obj.mat', 'sum(fval)')
 
 %%%%%%%%%%%%%%%%%%%
 % Perfomance values Entropic- Reg
@@ -104,5 +101,8 @@ verb = true;  % Return objective evaluation at each point
 temp(end+1) = temp_er;
 obj(end+1)  = obj_er(end);
 
-save('Results_jj50/Entropicreg-Temp.mat', 'temp')
-save('Results_jj50/Entropicreg-Obj.mat', 'obj')
+save('Results/jj50/Entropicreg-Temp.mat', 'temp_er')
+save('Results/jj50/Entropicreg-Obj.mat', 'obj_er')
+
+save('Results/jj50/BarChart_temp.mat','temp')
+save('Results/jj50/BarChart_finalobj.mat','obj')

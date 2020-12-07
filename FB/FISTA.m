@@ -48,7 +48,7 @@ function [x,obj,temp] = FISTA(c,m,n,collect_obj,tol)
 
     %% Controls
     % iters controls the number of iterations
-    iters = 100;                                 %% increase
+    iters = 1000;                                 %% increase
     % The distance between points will serve as stopping criteria
     %norm_difference = Inf;
     % Objective value

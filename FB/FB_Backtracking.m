@@ -51,7 +51,7 @@ function [x,obj,temp] = FB_Backtracking(c,m,n,collect_obj,tol)
     [x, v_1, v_2] = prox_i(x,m,n,v_1,v_2);
 
     % iters controls the number of iterations
-    iters = 100;                                 %% increase
+    iters = 1000;                                 %% increase
     % The distance between points will serve as stopping criteria
     norm_difference = Inf;
     % Objective value

@@ -2,7 +2,7 @@
 obj  = [];
 temp = [];
 
-jj = 50;
+jj = 5;
 M = 200 + jj*200;          N = 200 + jj*200;
 m = (1/M) * ones(M,1);     n = (1/N) * ones(N,1);
 

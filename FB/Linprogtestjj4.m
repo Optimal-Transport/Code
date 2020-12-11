@@ -40,7 +40,7 @@ for kk = [2:5]
     b = [ m;n ];
 
     %Run algorithm
-    options = optimoptions('linprog','Algorithm','dual-simplex','OptimalityTolerance', 5le-kk, 'ConstraintTolerance',1e-6);
+    options = optimoptions('linprog','Algorithm','dual-simplex','OptimalityTolerance', 5e-kk, 'ConstraintTolerance',1e-6);
     tStart = tic;
     [x_lp,fval,exitflag,output,lambda] = linprog(c(:),[],[],A,b, sparse(zeros(N*M,1)), [], options);
 

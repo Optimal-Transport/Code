@@ -1,4 +1,4 @@
-function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, collect_obj, tol)
+function [x, obj, y_1, y_2, temp,temp_crit] = Primal_Dual(c, m, n, collect_obj, tol)
 %%
 % Primal_Dual(c, m, n, tol) : Executes the Primal-Dual algorithm
 % applied to problems on optimal transport.
@@ -55,6 +55,10 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, collect_obj, tol)
     end
     
     tStart = tic;
+    
+    % Display time at different intervals
+    i = 5;
+    temp_crit = [];
 
     %% Now we perform the Primal-Dual iteration:
     for it = 1:iters
@@ -75,6 +79,11 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, collect_obj, tol)
         if collect_obj
             obj(end+1) = sum(sum(c.*x));
         end
+        % Store temp for certain tolerance
+        if norm_difference < tol * norm(u) * 10 ^ i
+            temp_crit(end+1) = toc(tStart);
+            i = i - 1;
+        end
 
         if norm_difference < tol * norm(u)
             break
@@ -83,6 +92,7 @@ function [x, obj, y_1, y_2, temp] = Primal_Dual(c, m, n, collect_obj, tol)
     end
     % Update time clock
     temp = toc(tStart);
+    temp_crit(end+1) = temp;
     obj(end+1) = sum(sum(c.*x));
     % See order of magnitude and number of iterations
     [log(norm_difference)/log(10), int16(it)]

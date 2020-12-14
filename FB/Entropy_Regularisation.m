@@ -1,4 +1,4 @@
-function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps,collect_obj)
+function [x,obj,temp,temp_crit] = Entropy_Regularisation(m,n,c,eps,collect_obj, tol)
 %%
 % Entropy_Regularisation(m,n,c,eps) : Executes the Entropy Regularisation
 % algorithm for problems on optimal transport.
@@ -40,11 +40,26 @@ function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps,collect_obj)
     
     % Starting time
     tStart = tic;
+    
+    % Display time at different intervals
+    i = 5;
+    temp_crit = [];
+    
     for i = 1:iters
         % Updating a and b
-        a = m./(Geps*b);
-        b = n./(a'*Geps)';
+        anew = m./(Geps*b);
+        bnew = n./(a'*Geps)';
+        x = a.*Geps .* b';
+        u = anew.*Geps .* bnew';
+        norm_difference = norm(x-u);
+        a = anew;
+        b = bnew;
         
+        % Store temp for certain tolerance
+        if norm_difference < tol * norm(u) * 10 ^ i
+            temp_crit(end+1) = toc(tStart);
+            i = i - 1;
+        end
         if collect_obj
             gam = a.*Geps .* b';
             obj(end+1) = sum(c.*gam,'all');
@@ -53,6 +68,7 @@ function [x,obj,temp] = Entropy_Regularisation(m,n,c,eps,collect_obj)
     end
     % Update time clock
     temp = toc(tStart);
+    temp_crit(end+1) = temp;
     % Final estimation
     x   = a.*Geps .* b';
     obj(end+1) = sum(c .* x,'all'); 

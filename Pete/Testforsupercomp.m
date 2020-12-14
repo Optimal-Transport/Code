@@ -1,4 +1,4 @@
-jj =4;
+jj = 4;
 % Perfomance values
 obj  = [];
 temp = [];
@@ -22,9 +22,9 @@ verb = true;  % Return objective evaluation at each point
 temp(end+1) = temp_fb;
 obj(end+1)  = obj_fb(end);
 
-save('Results/jj' + string(jj) + '/FB-Tempcrit_jj=' + string(jj) + '.mat', 'tempcrit_fb')
-save('Results/jj' + string(jj) + '/FB-Tempjj=' + string(jj) + '.mat', 'temp_fb')
-save('Results/jj' + string(jj) + '/FB-Objjj=' + string(jj) + '.mat', 'obj_fb')
+save('Results/FB-Tempcrit_jj=' + string(jj) + '.mat', 'tempcrit_fb')
+save('Results/FB-Tempjj=' + string(jj) + '.mat', 'temp_fb')
+save('Results/FB-Objjj=' + string(jj) + '.mat', 'obj_fb')
 
 
 %% Forward-Backwards with backtracking
@@ -35,9 +35,9 @@ verb = true;  % Return objective evaluation at each point
 temp(end+1) = temp_fbb;
 obj(end+1)  = obj_fbb(end);
 
-save('Results/jj' + string(jj) + '/FBbacktrack-Tempcritjj' + string(jj) + '.mat', 'tempcrit_fbb')
-save('Results/jj' + string(jj) + '/FBbacktrack-Temp.matjj' + string(jj) + '.mat', 'temp_fbb')
-save('Results/jj' + string(jj) + '/FBbacktrack-Obj.matjj' + string(jj) + '.mat', 'obj_fbb')
+save('Results/FBbacktrack-Tempcritjj' + string(jj) + '.mat', 'tempcrit_fbb')
+save('Results/FBbacktrack-Temp.matjj' + string(jj) + '.mat', 'temp_fbb')
+save('Results/FBbacktrack-Obj.matjj' + string(jj) + '.mat', 'obj_fbb')
 
 %% FISTA
 % Run algorithm Fista
@@ -48,9 +48,9 @@ verb = true;  % Return objective evaluation at each point
 temp(end+1) = temp_fi;
 obj(end+1)  = obj_fi(end);
 
-save('Results/jj' + string(jj) + '/Fista-Tempcritjj=' + string(jj) + '.mat', 'tempcrit_fi')
-save('Results/jj' + string(jj) + '/Fista-Tempjj=' + string(jj) + '.mat', 'temp_fi')
-save('Results/jj' + string(jj) + '/Fista-Objjj=' + string(jj) + '.mat', 'obj_fi')
+save('Results/newjj' + string(jj) + '/Fista-Tempcritjj=' + string(jj) + '.mat', 'tempcrit_fi')
+save('Results/newjj' + string(jj) + '/Fista-Tempjj=' + string(jj) + '.mat', 'temp_fi')
+save('Results/newjj' + string(jj) + '/Fista-Objjj=' + string(jj) + '.mat', 'obj_fi')
 
 
 %% FISTA with backtrack
@@ -61,9 +61,9 @@ verb = true;  % Return objective evaluation at each point
 temp(end+1) = temp_fib;
 obj(end+1)  = obj_fib(end);
 
-save('Results/jj' + string(jj) + '/Fistawbacktrack-Tempcritjj=' + string(jj) + '.mat', 'tempcrit_fib')
-save('Results/jj' + string(jj) + '/Fistawbacktrack-Tempjj=' + string(jj) + '.mat', 'temp_fib')
-save('Results/jj' + string(jj) + '/Fistawbacktrack-Objjj=' + string(jj) + '.mat', 'obj_fib')
+save('Results/Fistawbacktrack-Tempcritjj=' + string(jj) + '.mat', 'tempcrit_fib')
+save('Results/Fistawbacktrack-Tempjj=' + string(jj) + '.mat', 'temp_fib')
+save('Results/Fistawbacktrack-Objjj=' + string(jj) + '.mat', 'obj_fib')
 
 %% Primal-Dual
 % Run algorithm
@@ -73,9 +73,9 @@ save('Results/jj' + string(jj) + '/Fistawbacktrack-Objjj=' + string(jj) + '.mat'
 temp(end+1) = temp_pd;
 obj(end+1)  = obj_pd(end);
 
-save('Results/jj' + string(jj) + '/Primaldual-Tempcritjj=' + string(jj) + '.mat', 'tempcrit_pd')
-save('Results/jj' + string(jj) + '/Primaldual-Tempjj=' + string(jj) + '.mat', 'temp_pd')
-save('Results/jj' + string(jj) + '/Primaldual-Objjj=' + string(jj) + '.mat', 'obj_pd')
+save('Results/Primaldual-Tempcritjj=' + string(jj) + '.mat', 'tempcrit_pd')
+save('Results/Primaldual-Tempjj=' + string(jj) + '.mat', 'temp_pd')
+save('Results/Primaldual-Objjj=' + string(jj) + '.mat', 'obj_pd')
 
 %%%%%%%%%%%%%%%
 % Lin progr system Ax = b
@@ -97,14 +97,32 @@ save('Results/jj' + string(jj) + '/Primaldual-Objjj=' + string(jj) + '.mat', 'ob
 %%%%%%%%%%%%%%%%%%%
 % Perfomance values Entropic- Reg
 eps = 0.0025; % Regularisation constant
+%eps = 0.0001;
 verb = true;  % Return objective evaluation at each point
 %% 
 % Run algorithm
 %%
-[x_er,obj_er,temp_er, tempcrit_er] = Entropy_Regularisation(m,n,c,eps,verb, 5e-5);
+% Display time at different intervals
+tempcrit_er = [];
+crit_tol = [];
+for i = [0:4]
+    crit_tol(end+1) = 5 * 10 ^ (-i);
+    crit_tol(end+1) = 1 * 10 ^ (-i);
+end
+j = 1;
+for kk = [1:8]
+    [x_er,obj_er,temp_er] = entropy_regularisation_old(m,n,c,0.0022,verb, crit_tol(kk));
+    obj_er(end)
+    temp_er;
+    tempcrit_er(end + 1) = temp_er;
+end
+tempcrit_er
 temp(end+1) = temp_er;
 obj(end+1)  = obj_er(end);
 
-save('Results/jj' + string(jj) + '/Entropicreg-Tempcritjj=' + string(jj) + '.mat', 'tempcrit_er')
-save('Results/jj' + string(jj) + '/Entropicreg-Tempjj=' + string(jj) + '.mat', 'temp_er')
-save('Results/jj' + string(jj) + '/Entropicreg-Objjj=' + string(jj) + '.mat', 'obj_er')
+save('Results/Entropicreg-Tempcritjj=0.mat', 'tempcrit_er')
+save('Results/Entropicreg-Tempjj=0.mat', 'temp_er')
+save('Results/Entropicreg-Objjj=0.mat', 'obj_er')
+
+save('Results/newjj4/final_obj.mat', 'obj')
+save('Results/newjj4/final_temp.mat', 'temp')

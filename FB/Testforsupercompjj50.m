@@ -88,7 +88,7 @@ temp(end+1) = temp_lp;
 obj(end+1) = sum(fval);
 
 save('Results/jj50/Linearprog-Temp.mat', 'temp_lp')
-save('Results/jj50/Linearprog-Obj.mat', 'sum(fval)')
+save('Results/jj50/Linearprog-Obj.mat', 'fval')
 
 %%%%%%%%%%%%%%%%%%%
 % Perfomance values Entropic- Reg

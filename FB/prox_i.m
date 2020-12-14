@@ -7,7 +7,7 @@ function [z,v_1, v_2] = prox_i(y,m,n, v_1,v_2, tol)
 % By default, tol = 1e-10.
 
     if nargin < 6
-        tol = 1e-6;
+        tol = 1e-4;
     end
     
     % Recover size of matrix

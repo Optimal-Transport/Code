@@ -62,8 +62,13 @@ function [x,obj,temp,temp_crit] = FISTA(c,m,n,collect_obj,tol)
     tStart = tic;
     
     % Display time at different intervals
-    i = 5;
     temp_crit = [];
+    crit_tol = [];
+    for i = [0:5]
+        crit_tol(end+1) = 5 * 10 ^ (-i);
+        crit_tol(end+1) = 1 * 10 ^ (-i);
+    end
+    j = 1;
 
     %% Now we perform the FISTA iteration:
     for it = 1:iters
@@ -76,6 +81,9 @@ function [x,obj,temp,temp_crit] = FISTA(c,m,n,collect_obj,tol)
         z = x + l * (u-x);
         % Iterate info
         norm_difference = norm(x-u);
+        %Average objective from 2 previous
+        aver_obj = (sum(c.*u,'all') + (sum(c.*x,'all')))/2;
+        
         x = u;
         t = s;
         % Store objective if needed
@@ -83,12 +91,12 @@ function [x,obj,temp,temp_crit] = FISTA(c,m,n,collect_obj,tol)
             obj(end+1) = sum(sum(c.*x));
         end
         % Store temp for certain tolerance
-        if norm_difference < tol * norm(u) * 10 ^ i
+        if abs(sum(c.*x,'all') - 1) < crit_tol(j)
             temp_crit(end+1) = toc(tStart);
-            i = i - 1;
+            j = j + 1;
         end
         % Check tolerance
-        if norm_difference < tol * norm(u)
+        if abs(sum(c.*x,'all') - 1) < tol
             break
         end
     end

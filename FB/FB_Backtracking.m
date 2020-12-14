@@ -1,4 +1,4 @@
-function [x,obj,temp] = FB_Backtracking(c,m,n,collect_obj,tol)
+function [x,obj,temp,temp_crit] = FB_Backtracking(c,m,n,collect_obj,tol)
 %%
 % FB_Backtracking(c,m,n,collect,tol) : Executes the Forward-Backward algorithm
 % applied to problems on optimal transport with backtracking.
@@ -63,6 +63,10 @@ function [x,obj,temp] = FB_Backtracking(c,m,n,collect_obj,tol)
     
     % Measure time
     tStart = tic;
+    
+    % Display time at different intervals
+    i = 5;
+    temp_crit = [];
 
     %% Now we perform the FB iteration:
     for it = 1:iters
@@ -84,6 +88,11 @@ function [x,obj,temp] = FB_Backtracking(c,m,n,collect_obj,tol)
         if collect_obj
             obj(end+1) = sum(sum(c.*x));
         end
+        % Store temp for certain tolerance
+        if norm_difference < tol * norm(u) * 10 ^ i
+            temp_crit(end+1) = toc(tStart);
+            i = i - 1;
+        end
         % Check tolerance
         if norm_difference < tol * norm(u)
             break
@@ -91,6 +100,7 @@ function [x,obj,temp] = FB_Backtracking(c,m,n,collect_obj,tol)
     end
     % Update time clock
     temp = toc(tStart);
+    temp_crit(end+1) = temp;
     obj(end+1) = sum(sum(c.*x));
 
     % See order of magnitude and number of iterations

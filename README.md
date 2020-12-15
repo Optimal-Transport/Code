@@ -13,7 +13,7 @@ All code from http://proximity-operator.net/
 ## Tests_For_HPC
 Scripts to run some tests on a HPC Server.
 
-## Main folder
+## Main folder
 This folder contains these files:
 
 * ```Feasible_Region.m``` Feasible Region plot (to be added in Overleaf).

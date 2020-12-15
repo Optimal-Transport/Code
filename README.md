@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/305434774.svg)](https://zenodo.org/badge/latestdoi/305434774)
+
 # Code files for Optimal Transport Taster Project
 
 The repo has the following folders:

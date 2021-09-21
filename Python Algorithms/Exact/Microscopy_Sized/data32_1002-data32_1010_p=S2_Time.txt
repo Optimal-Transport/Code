@@ -1,0 +1,1 @@
+{'Builder': '14.700879096984863', 'Simplex': '66692 iterations and 1.01 seconds', 'Barrier': '1883 iterations and 6.70 seconds', 'Obj': 0.010675024052995653}

@@ -25,3 +25,4 @@ All instances from DOTmark - A Benchmark for Discrete Optimal Transport https://
 This folder contains these files:
 
 * ```README.md``` This file.
+Conor smells

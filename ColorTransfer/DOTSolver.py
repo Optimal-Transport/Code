@@ -1,14 +1,24 @@
-# coding: utf-8
+# -*- coding: utf-8 -*-
+import sys
+
+if len(sys.argv) == 4:
+    algorithm, out_folder, files_name = sys.argv[1:]
+else:
+    algorithm, out_folder = sys.argv[1:]
+    files_name = 'ML_files.mat'
+#print(sys.argv)
+
 
 '''
     Packages
 '''
 from gurobipy import *
-
 import numpy  as np
 import pandas as pd
 import time
-import os
+import os, sys
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 
@@ -20,8 +30,20 @@ from numba import jit
 from scipy.spatial.distance import cdist
 from scipy.linalg import norm
 from pandas       import read_csv
-from scipy.io     import savemat
+from scipy.io     import savemat, loadmat
 
+'''
+    Collect m,n,c, M,N
+'''
+files = loadmat(out_folder + files_name)
+m, n, c = files['P_x'].ravel(), files['P_y'].ravel(), files['ndc_xy']
+M = m.size
+N = n.size
+print('Files read')
+
+'''
+    Define main function
+'''
 
 def Runner(m,n,c, M,N, algorithm, out_folder):
     '''
@@ -32,11 +54,11 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                         ER: Entropic Regularisation
                         PD: Primal-Dual
                         DR: Douglas-Rachford
-        out_folder:   A string with the name of the folder to store results 
+        out_folder:   A string with the name of the folder to store results
     '''
-    
+
     # Check if out folder exists, else create it
-    if not os.path.exists(out_folder):    
+    if not os.path.exists(out_folder):
         os.makedirs(out_folder)
 
     '''
@@ -44,11 +66,11 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
     '''
     start = time.time()
     mo = Model()
-    γ  = {}
-    γ = mo.addMVar( (M,N), vtype = 'C', name ='g', obj = c, lb = 0.0)
+    G  = { }
+    G = mo.addMVar( (M,N), vtype = 'C', name ='g', obj = c, lb = 0.0)
 
-    mo.addConstrs( (γ[i,:].sum() == m[i] for i in range(M)), name='m' );
-    mo.addConstrs( (γ[:,j].sum() == n[j] for j in range(N)), name='n');
+    mo.addConstrs( (G[i,:].sum() == m[i] for i in range(M)), name='m' );
+    mo.addConstrs( (G[:,j].sum() == n[j] for j in range(N)), name='n');
     end = time.time()
     mo.Params.IntFeasTol, mo.Params.FeasibilityTol, mo.Params.OptimalityTol = 1e-9, 1e-9, 1e-9
     mo.reset();    mo.setParam('Method', 0);    mo.Params.Presolve = 0;    mo.optimize()
@@ -56,7 +78,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
     Exact_performance = { 'Builder': end-start, 'Simplex': mo.RunTime, 'Obj': mo.ObjVal}
 
     # Retrieve solution
-    sol = γ.x
+    sol = G.x
     obj_exact = mo.ObjVal
     # Visualise solution
     plt.figure(figsize = (10,5))
@@ -76,10 +98,10 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
     np.save(out_folder + 'Exact-Sol' , sol)    # Solution
     savemat(out_folder + 'Exact-Sol.mat', mdict={'sol': sol})
 
-    with open(out_folder + 'Exact_Time.txt', 'w') as f:    print(Exact_performance, file=f)
+    #with open(out_folder + 'Exact_Time.txt', 'w') as f:    print(Exact_performance, file=f)
 
     '''
-        Algorithms: copy & paste from notebooks if there is a change 
+        Algorithms: copy & paste from notebooks if there is a change
     '''
     #
     #
@@ -98,14 +120,14 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         '''
             Initialise parameters
         '''
-        #Initialise τ
-        τ = 0.001
+        #Initialise tau
+        tau = 0.001
 
-        #Initialise σ
-        σ = 1/τ - 0.5
+        #Initialise sigma
+        sigma = 1/tau - 0.5
 
-        #Initialise ρ
-        ρ = 1.9
+        #Initialise rho
+        rho = 1.9
 
         #fetch lengths of m and n.
         N = n.size
@@ -119,8 +141,8 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         '''
         #Initialise x & y
         x, y = zeros((2,M,N));            #y[0,:] = n;    y[:,0] = m
-        #Initialise xₖ, yₖ, xₚ
-        xₖ, yₖ, xₚ = zeros((3,M,N))
+        #Initialise xk, yk, xp
+        xk, yk, xp = zeros((3,M,N))
 
         '''
             Information from true solution (if available)
@@ -141,7 +163,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         '''
 
         every_iter = {
-            'it':[], 'obj':[], 'dist_obj':[], 'time':[], 'dist_x':[], 'rel_var':[], 
+            'it':[], 'obj':[], 'dist_obj':[], 'time':[], 'dist_x':[], 'rel_var':[],
             'hyperₘ':{'L2': [], 'max': [], 'min':[]}, 'hyperₙ':{'L2': [], 'max': [], 'min':[]}
                      }
         every_critical = {'it':[], 'obj':[], 'tol':[], 'dist_obj':[], 'time':[], 'dist_x':[]}
@@ -154,23 +176,23 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
 
         for k in range(iters):
 
-            xₖ = x - τ * (c + y)
-            xₖ = where(xₖ < 0, 0, xₖ)
+            xk = x - tau * (c + y)
+            xk = where(xk < 0, 0, xk)
 
-            u = (y + σ * (2.0 * xₖ - x))/σ
+            u = (y + sigma * (2.0 * xk - x))/sigma
 
-            κ_1 = u.sum(1) 
-            κ_2 = u.sum(0)
+            kappa_1 = u.sum(1)
+            kappa_2 = u.sum(0)
 
-            β_1 = (κ_1-m).sum() / (M + N)
-            β_2 = (κ_2-n).sum() / (M + N)
+            beta_1 = (kappa_1-m).sum() / (M + N)
+            beta_2 = (kappa_2-n).sum() / (M + N)
 
-            yₖ = σ*(tile( ((κ_1 -m)- β_1)/N, (N,1)).T + tile( ((κ_2 - n) - β_2)/M, (M,1)))
+            yk = sigma*(tile( ((kappa_1 -m)- beta_1)/N, (N,1)).T + tile( ((kappa_2 - n) - beta_2)/M, (M,1)))
 
 
             #Reset x and y for the next iteration
-            x = ρ*xₖ + (1 - ρ)*x
-            y = ρ*yₖ + (1 - ρ)*y
+            x = rho*xk + (1 - rho)*x
+            y = rho*yk + (1 - rho)*y
 
             # Measure time up to this point!
             end = time.time()
@@ -192,7 +214,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                 every_iter['dist_obj'].append( dist_true_sol if true_obj is not None else np.nan )
                 every_iter['time'].append( end-start )
                 every_iter['dist_x'].append( frob_d )
-                every_iter['rel_var'].append( norm(xₚ-x, 'fro')/norm(x, 'fro') if not allclose(x,0) else np.nan )
+                every_iter['rel_var'].append( norm(xp-x, 'fro')/norm(x, 'fro') if not allclose(x,0) else np.nan )
                 # Constrained satisfactibility
                 every_iter['hyperₘ']['L2'].append( norm(r)/norm(m) )
                 every_iter['hyperₘ']['max'].append( abs(r/maximum(m,1e-7)).max() )
@@ -202,7 +224,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                 every_iter['hyperₙ']['min'].append( abs(s/maximum(n,1e-7)).min() )
 
             # If a true solution is available, we check the tolerance:
-            if true_solution is not None: 
+            if true_solution is not None:
                 if dist_true_sol < true_obj_crit:
                     frob_d = norm(sol-x, 'fro')/norm(sol, 'fro')
 
@@ -225,7 +247,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                     true_obj_crit *= 0.1
 
             # Update previous step
-            xₚ = x.copy()
+            xp = x.copy()
 
         if true_solution is not None:
             print( '{:-^55}'.format('') )
@@ -243,9 +265,8 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
     '''
         Douglas-Rachford (DR)
     '''
-    def douglas_rachford(c,m,n,iters, collect_obj = False, 
-                                                     true_obj = None,
-                                                 true_obj_tol = 1e-4, true_solution = None, save_iter = False):
+
+    def douglas_rachford(c,m,n,iters, collect_obj = False, true_obj = None, true_obj_tol = 1e-4, true_solution = None, save_iter = False):
         # Algorithm for calculating solution x, in the primal space
         # and y_1, y_2 in the dual space.
         # Also returns the value of the objective function c*x at each
@@ -254,14 +275,14 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         '''
             Initialise parameters
         '''
-        #First compute μ
-        μ = norm(c,2)     # 1 -> 10^-1 -> 10^-2 -> ...
-        # μ is selected as the midpoint of the interval
+        #First compute mu
+        mu = norm(c,2)     # 1 -> 10^-1 -> 10^-2 -> ...
+        # mu is selected as the midpoint of the interval
         #e = 1/mu #0.5 * 1/mu;        # remove
-        # γ->θ does not depend on the current iteration
-        θ = 0.001
-        # likewise, we do not require a change in λ
-        λ = 1.0
+        # γ->theta does not depend on the current iteration
+        theta = 0.001
+        # likewise, we do not require a change in lambd
+        lambd = 1.0
 
         # Fetch lengths of m and n
         N = n.size;        M = m.size
@@ -273,13 +294,13 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         '''
 
         # Initialise x
-        x = zeros((M,N));    xₚ = zeros((M,N))
+        x = zeros((M,N));    xp = zeros((M,N))
 
-        ϕ = zeros(M)
-        ψ = zeros(N)
+        phi = zeros(M)
+        psi = zeros(N)
         a = x.sum(1) - m
         b = x.sum(0) - n
-        α = a.sum() / (M + N)
+        alpha = a.sum() / (M + N)
 
 
         '''
@@ -301,7 +322,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         '''
 
         every_iter = {
-            'it':[], 'obj':[], 'dist_obj':[], 'time':[], 'dist_x':[], 'rel_var':[], 
+            'it':[], 'obj':[], 'dist_obj':[], 'time':[], 'dist_x':[], 'rel_var':[],
             'hyperₘ':{'L2': [], 'max': [], 'min':[]}, 'hyperₙ':{'L2': [], 'max': [], 'min':[]}
                      }
         every_critical = {'it':[], 'obj':[], 'tol':[], 'dist_obj':[], 'time':[], 'dist_x':[]}
@@ -310,22 +331,22 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             print('     It  |  Tolerance |        Time       | Frob. dist. ')
             print( '{:-^55}'.format('') )
 
-        start = time.time()    
+        start = time.time()
         for k in range(iters):
 
-            x += tile(ϕ, (N,1)).T + tile(ψ, (M,1)) - θ*c
+            x += tile(phi, (N,1)).T + tile(psi, (M,1)) - theta*c
             x = where(x<0,0,x)
 
             r = x.sum(1) - m
             s = x.sum(0) - n
-            β = r.sum() / (M + N)
+            beta = r.sum() / (M + N)
 
-            ϕ = (a - 2 * r + (2 * β - α)) / N
-            ψ = (b - 2 * s + (2 * β - α)) / M
+            phi = (a - 2 * r + (2 * beta - alpha)) / N
+            psi = (b - 2 * s + (2 * beta - alpha)) / M
 
             a -= r
             b -= s
-            α -= β
+            alpha -= beta
 
             # Measure time up to this point!
             end = time.time()
@@ -346,7 +367,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                 every_iter['dist_obj'].append( dist_true_sol if true_obj is not None else np.nan )
                 every_iter['time'].append( end-start )
                 every_iter['dist_x'].append( frob_d )
-                every_iter['rel_var'].append( norm(xₚ-x, 'fro')/norm(x, 'fro') if not allclose(x,0) else np.nan )
+                every_iter['rel_var'].append( norm(xp-x, 'fro')/norm(x, 'fro') if not allclose(x,0) else np.nan )
                 # Constrained satisfactibility
                 every_iter['hyperₘ']['L2'].append( norm(r)/norm(m) )
                 every_iter['hyperₘ']['max'].append( abs(r/maximum(m,1e-7)).max() )
@@ -355,10 +376,10 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                 every_iter['hyperₙ']['max'].append( abs(s/maximum(n,1e-7)).max() )
                 every_iter['hyperₙ']['min'].append( abs(s/maximum(n,1e-7)).min() )
 
-               #print(dist_true_sol) 
+               #print(dist_true_sol)
 
             # If a true solution is available, we check the tolerance:
-            if true_solution is not None: 
+            if true_solution is not None:
                 if dist_true_sol < true_obj_crit:
                     frob_d = norm(sol-x, 'fro')/norm(sol, 'fro')
 
@@ -381,7 +402,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                     true_obj_crit *= 0.1
 
             # Update previous step
-            xₚ = x.copy()
+            xp = x.copy()
 
         if true_solution is not None:
             print( '{:-^55}'.format('') )
@@ -398,10 +419,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
     '''
         Entropic Regularisation (ER)
     '''
-    def sinkhorn_knopp(M,a,b, reg, numItermax=1000,
-                       stopThr=1e-9, verbose=False,collect_obj = False, 
-                       true_obj = None, true_obj_tol = 1e-4,
-                       true_solution = None, save_iter = False, **kwargs):
+    def sinkhorn_knopp(M,a,b, reg, numItermax=1000, stopThr=1e-9, verbose=False,collect_obj = False, true_obj = None, true_obj_tol = 1e-4, true_solution = None, save_iter = False, **kwargs):
         r"""
         Solve the entropic regularization optimal transport problem and return the OT matrix
         The function solves the following optimization problem:
@@ -412,7 +430,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                  γ   ≥ 0
         where :
         - M is the (dim_a, dim_b) metric cost matrix
-        - Ω is the entropic regularization term `Ω(γ) = Σ_{i,j} γ_{i,j} log(γ_{i,j})`
+        - Ω is the entropic regularization term `Ω(γ) = sigma_{i,j} γ_{i,j} log(γ_{i,j})`
         - a and b are source and target weights (histograms, both sum to 1)
         The algorithm used for solving the problem is the Sinkhorn-Knopp matrix scaling algorithm as proposed in [2]
         Parameters
@@ -442,7 +460,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             log dictionary return only if log==True in parameters
         References
         ----------
-        .. [2] M. Cuturi, Sinkhorn Distances: Lightspeed Computation of Optimal Transport, 
+        .. [2] M. Cuturi, Sinkhorn Distances: Lightspeed Computation of Optimal Transport,
                                               Advances in Neural Information Processing Systems (NIPS) 26, 2013
         See Also
         --------
@@ -453,8 +471,8 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
 
         '''a = asarray(a, dtype=np.float64)
         b = asarray(b, dtype=np.float64)
-        M = asarray(M, dtype=np.float64)''' 
-        x,xₚ = zeros((2,M.shape[0],M.shape[1]))
+        M = asarray(M, dtype=np.float64)'''
+        x,xp = zeros((2,M.shape[0],M.shape[1]))
 
         if len(a) == 0:
             a = np.ones((M.shape[0],), dtype=np.float64) / M.shape[0]
@@ -507,7 +525,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         '''
 
         every_iter = {
-            'it':[], 'obj':[], 'dist_obj':[], 'time':[], 'dist_x':[], 'rel_var':[], 
+            'it':[], 'obj':[], 'dist_obj':[], 'time':[], 'dist_x':[], 'rel_var':[],
             'hyperₘ':{'L2': [], 'max': [], 'min':[]}, 'hyperₙ':{'L2': [], 'max': [], 'min':[]}
                      }
         every_critical = {'it':[], 'obj':[], 'tol':[], 'dist_obj':[], 'time':[], 'dist_x':[]}
@@ -554,7 +572,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             # Measure time up to this point!
             end = time.time()
 
-            # Compute current 
+            # Compute current
             x = u.reshape((-1, 1)) * K * v.reshape((1, -1))
 
             # Update objective function
@@ -574,7 +592,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                 every_iter['dist_obj'].append( dist_true_sol if true_obj is not None else np.nan )
                 every_iter['time'].append( end-start )
                 every_iter['dist_x'].append( frob_d )
-                every_iter['rel_var'].append( norm(xₚ-x, 'fro')/norm(x, 'fro') if not allclose(x,0) else np.nan )
+                every_iter['rel_var'].append( norm(xp-x, 'fro')/norm(x, 'fro') if not allclose(x,0) else np.nan )
                 # Constrained satisfactibility
                 every_iter['hyperₘ']['L2'].append( norm(r)/norm(a) )
                 every_iter['hyperₘ']['max'].append( abs(r/maximum(a,1e-7)).max() )
@@ -584,7 +602,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                 every_iter['hyperₙ']['min'].append( abs(s/maximum(b,1e-7)).min() )
 
             # If a true solution is available, we check the tolerance:
-            if true_solution is not None: 
+            if true_solution is not None:
                 if dist_true_sol < true_obj_crit:
                     frob_d = norm(sol-x, 'fro')/norm(sol, 'fro')
 
@@ -608,7 +626,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
 
 
             # Update previous step
-            xₚ = x.copy()
+            xp = x.copy()
 
             cpt = cpt + 1 #number of iterations
 
@@ -633,20 +651,20 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             *** Run algorithm ***
         '''
         if algorithm == 'PD-':
-            x, obj, every_critical, every_iter = primal_dual_improved(c,m,n, 100000, 
-                                                                      collect_obj = True, true_obj = obj_exact, 
-                                                                      true_obj_tol = 1e-7, true_solution = sol, 
+            x, obj, every_critical, every_iter = primal_dual_improved(c,m,n, 100000,
+                                                                      collect_obj = True, true_obj = obj_exact,
+                                                                      true_obj_tol = 1e-7, true_solution = sol,
                                                                       save_iter = True)
         if algorithm == 'DR-':
-            x, obj, every_critical, every_iter = douglas_rachford(c,m,n, 1000000, 
-                                                                            collect_obj = True, 
+            x, obj, every_critical, every_iter = douglas_rachford(c,m,n, 1000000,
+                                                                            collect_obj = True,
                                                                                true_obj = obj_exact,
                                                                            true_obj_tol = 1e-6,
-                                                                          true_solution = sol, 
+                                                                          true_solution = sol,
                                                                               save_iter = True)
         if algorithm == 'ER-':
-            x, obj, every_critical, every_iter = sinkhorn_knopp(c,m,n,0.0002, numItermax= 10000, 
-                                                                collect_obj = True, 
+            x, obj, every_critical, every_iter = sinkhorn_knopp(c,m,n,0.0002, numItermax= 10000,
+                                                                collect_obj = True,
                                                                 true_obj = obj_exact,
                                                                 true_obj_tol = 1e-7,
                                                                 true_solution = sol, save_iter = True)
@@ -775,7 +793,6 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             plt.title('Satisfactibility of hyperspace constaint 𝟙ᵀx = n');    plt.legend()
 
             plt.savefig(out_folder+'RelE_n.pdf', bbox_inches='tight',transparent=True)
-            plt.show()
 
         '''
             *** Store critical values ***
@@ -783,18 +800,18 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         df_critical = pd.DataFrame.from_dict(every_critical)
         df_critical.to_pickle(out_folder+'Critical.pkl') # To read back use pd.read_pickle(file_name)
         df_critical.to_excel(out_folder+'Critical.xlsx')
-        display(df_critical)
+        #display(df_critical)
 
         '''
             *** Store info from all iterations ***
         '''
         df_every = pd.concat([
                      pd.DataFrame.from_dict( {a:b for a,b in every_iter.items() if a not in ['hyperₘ', 'hyperₙ'] } ),
-                     pd.DataFrame.from_dict( {'hyperₘ-'+a:b for a,b in every_iter['hyperₘ'].items()} ), 
+                     pd.DataFrame.from_dict( {'hyperₘ-'+a:b for a,b in every_iter['hyperₘ'].items()} ),
                      pd.DataFrame.from_dict( {'hyperₙ-'+a:b for a,b in every_iter['hyperₙ'].items()} )], axis = 1)
         df_every.to_pickle(out_folder+'Every.pkl') # To read back use pd.read_pickle(file_name)
         df_every.to_excel(out_folder+'Every.xlsx')
-        display(df_every.head())
+        #display(df_every.head())
 
         '''
             *** Store solution ***
@@ -807,10 +824,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
 
 
 
-
-
-
-
-
-
-
+'''
+    Run function
+'''
+Runner(m,n,c, M,N, algorithm, out_folder)

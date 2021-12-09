@@ -126,7 +126,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         σ = 1.0/τ - 1e-5
 
         #Initialise ρ
-        ρ = 1.9
+        ρ = 1.9 
 
         #fetch lengths of m and n.
         N = n.size
@@ -178,7 +178,8 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             it_time = time.time()
 
             xₖ = x - τ * (c + y)
-            xₖ = where(xₖ < 0.0, 0.0, xₖ)
+            #xₖ = where(xₖ < 0.0, 0.0, xₖ)
+            maximum(xₖ, 0.0, xₖ)
 
             u = (y + σ * (2.0 * xₖ - x))/σ
 
@@ -339,7 +340,8 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             it_time = time.time()
 
             x += tile(ϕ, (N,1)).T + tile(ψ, (M,1)) - θ*c
-            x = where(x<0,0,x)
+            #x = where(x<0,0,x)
+            maximum(x, 0.0, x)
 
             r = x.sum(1) - m
             s = x.sum(0) - n

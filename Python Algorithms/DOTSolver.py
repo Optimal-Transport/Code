@@ -120,10 +120,10 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             Initialise parameters
         '''
         #Initialise τ
-        τ = 0.001
+        τ = 1e-3 * 2
 
         #Initialise σ
-        σ = 1/τ - 0.5
+        σ = 1.0/τ - 1e-5
 
         #Initialise ρ
         ρ = 1.9
@@ -282,7 +282,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         # μ is selected as the midpoint of the interval
         #e = 1/mu #0.5 * 1/mu;        # remove
         # γ->θ does not depend on the current iteration
-        θ = 0.001
+        θ = 1e-3 * 2
         # likewise, we do not require a change in λ
         λ = 1.0
 

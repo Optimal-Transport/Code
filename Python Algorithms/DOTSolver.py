@@ -171,22 +171,24 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             print('     It  |  Tolerance |        Time       | Frob. dist. ')
             print( '{:-^55}'.format('') )
 
-        start = time.time()
+        timed = 0.0
 
         for k in range(iters):
 
+            it_time = time.time()
+
             xₖ = x - τ * (c + y)
-            xₖ = where(xₖ < 0, 0, xₖ)
+            xₖ = where(xₖ < 0.0, 0.0, xₖ)
 
             u = (y + σ * (2.0 * xₖ - x))/σ
 
-            κ_1 = u.sum(1)
-            κ_2 = u.sum(0)
+            κ_1 = u.sum(1);        κ_1 -= m
+            κ_2 = u.sum(0);        κ_2 -= n
 
-            β_1 = (κ_1-m).sum() / (M + N)
-            β_2 = (κ_2-n).sum() / (M + N)
+            β_1 = κ_1.sum() / (M + N)
+            β_2 = κ_2.sum() / (M + N)
 
-            yₖ = σ*(tile( ((κ_1 -m)- β_1)/N, (N,1)).T + tile( ((κ_2 - n) - β_2)/M, (M,1)))
+            yₖ = σ*(tile( (κ_1 - β_1)/N, (N,1)).T + tile( (κ_2 - β_2)/M, (M,1)))
 
 
             #Reset x and y for the next iteration
@@ -195,6 +197,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
 
             # Measure time up to this point!
             end = time.time()
+            timed += end - it_time
 
             # Update objective function
             if collect_obj == True:
@@ -211,7 +214,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                 every_iter['it'].append( k )
                 every_iter['obj'].append( (c*x).sum() )
                 every_iter['dist_obj'].append( dist_true_sol if true_obj is not None else np.nan )
-                every_iter['time'].append( end-start )
+                every_iter['time'].append( timed )
                 every_iter['dist_x'].append( frob_d )
                 every_iter['rel_var'].append( norm(xₚ-x, 'fro')/norm(x, 'fro') if not allclose(x,0) else np.nan )
                 # Constrained satisfactibility
@@ -231,11 +234,11 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                     every_critical['obj'].append( obj[-1] )
                     every_critical['tol'].append( true_obj_crit )
                     every_critical['dist_obj'].append( dist_true_sol )
-                    every_critical['time'].append( end-start )
+                    every_critical['time'].append( timed )
                     every_critical['dist_x'].append( frob_d )
 
                     print('* {0:6.0f} |    {1:.1e} | {2:15.2f} s |    {3:4.4f}'.format(k,true_obj_crit,
-                                                                                       end-start,frob_d))
+                                                                                       timed,frob_d))
 
                     # If the prescribed tolerance is reached, we finish.
                     if dist_true_sol < true_obj_tol:
@@ -251,7 +254,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         if true_solution is not None:
             print( '{:-^55}'.format('') )
 
-        print('\nAlgorithm stopped after {0:.4f} seconds and {1} iterations'.format(end-start,k))
+        print('\nAlgorithm stopped after {0:.4f} seconds and {1} iterations'.format(timed,k))
 
 
         if collect_obj == False and save_iter == True:
@@ -330,8 +333,10 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             print('     It  |  Tolerance |        Time       | Frob. dist. ')
             print( '{:-^55}'.format('') )
 
-        start = time.time()
+        timed = 0.0
         for k in range(iters):
+
+            it_time = time.time()
 
             x += tile(ϕ, (N,1)).T + tile(ψ, (M,1)) - θ*c
             x = where(x<0,0,x)
@@ -349,6 +354,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
 
             # Measure time up to this point!
             end = time.time()
+            timed += end - it_time
 
             # Update objective function
             if collect_obj == True:
@@ -364,7 +370,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                 every_iter['it'].append( k )
                 every_iter['obj'].append( (c*x).sum() )
                 every_iter['dist_obj'].append( dist_true_sol if true_obj is not None else np.nan )
-                every_iter['time'].append( end-start )
+                every_iter['time'].append( timed )
                 every_iter['dist_x'].append( frob_d )
                 every_iter['rel_var'].append( norm(xₚ-x, 'fro')/norm(x, 'fro') if not allclose(x,0) else np.nan )
                 # Constrained satisfactibility
@@ -386,11 +392,10 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                     every_critical['obj'].append( obj[-1] )
                     every_critical['tol'].append( true_obj_crit )
                     every_critical['dist_obj'].append( dist_true_sol )
-                    every_critical['time'].append( end-start )
+                    every_critical['time'].append( timed )
                     every_critical['dist_x'].append( frob_d )
 
-                    print('* {0:6.0f} |    {1:.1e} | {2:15.2f} s |    {3:4.4f}'.format(k,true_obj_crit,
-                                                                                       end-start,frob_d))
+                    print('* {0:6.0f} |    {1:.1e} | {2:15.2f} s |    {3:4.4f}'.format(k,true_obj_crit,timed,frob_d))
 
                     # If the prescribed tolerance is reached, we finish.
                     if dist_true_sol < true_obj_tol:
@@ -406,7 +411,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         if true_solution is not None:
             print( '{:-^55}'.format('') )
 
-        print('\nAlgorithm stopped after {0:.4f} seconds and {1} iterations'.format(end-start,k))
+        print('\nAlgorithm stopped after {0:.4f} seconds and {1} iterations'.format(timed,k))
 
 
         if collect_obj == False and save_iter == True:
@@ -415,10 +420,11 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             return x, obj, every_critical, every_iter
         else:
             return x
+
     '''
         Entropic Regularisation (ER)
     '''
-    def sinkhorn_knopp(M,a,b, reg, numItermax=1000, stopThr=1e-9, verbose=False,collect_obj = False, true_obj = None, true_obj_tol = 1e-4, true_solution = None, save_iter = False, **kwargs):
+    def sinkhorn_knopp(M,a,b, reg, numItermax=1000, stopThr=1e-9, verbose=False,collect_obj = False, true_obj = None, true_obj_tol = 1e-4,true_solution = None, save_iter = False, **kwargs):
         r"""
         Solve the entropic regularization optimal transport problem and return the OT matrix
         The function solves the following optimization problem:
@@ -534,9 +540,12 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
             print( '{:-^55}'.format('') )
 
         #Initial Time
-        start = time.time()
+        timed = 0.0
 
         while (err > stopThr and cpt < numItermax):
+
+            it_time = time.time()
+
             uprev = u
             vprev = v
 
@@ -570,6 +579,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
 
             # Measure time up to this point!
             end = time.time()
+            timed += end - it_time
 
             # Compute current
             x = u.reshape((-1, 1)) * K * v.reshape((1, -1))
@@ -589,7 +599,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                 every_iter['it'].append(cpt)
                 every_iter['obj'].append(obj[-1])
                 every_iter['dist_obj'].append( dist_true_sol if true_obj is not None else np.nan )
-                every_iter['time'].append( end-start )
+                every_iter['time'].append( timed )
                 every_iter['dist_x'].append( frob_d )
                 every_iter['rel_var'].append( norm(xₚ-x, 'fro')/norm(x, 'fro') if not allclose(x,0) else np.nan )
                 # Constrained satisfactibility
@@ -609,11 +619,11 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
                     every_critical['obj'].append( obj[-1] )
                     every_critical['tol'].append( true_obj_crit )
                     every_critical['dist_obj'].append( dist_true_sol )
-                    every_critical['time'].append( end-start )
+                    every_critical['time'].append( timed )
                     every_critical['dist_x'].append( frob_d )
 
                     print('* {0:6.0f} |    {1:.1e} | {2:15.2f} s |    {3:4.4f}'.format(cpt,true_obj_crit,
-                                                                                       end-start,frob_d))
+                                                                                       timed,frob_d))
 
                     # If the prescribed tolerance is reached, we finish.
                     if dist_true_sol < true_obj_tol:
@@ -632,7 +642,7 @@ def Runner(m,n,c, M,N, algorithm, out_folder):
         if true_solution is not None:
             print( '{:-^55}'.format('') )
 
-        print('\nAlgorithm stopped after {0:.4f} seconds and {1} iterations'.format(end-start,cpt))
+        print('\nAlgorithm stopped after {0:.4f} seconds and {1} iterations'.format(timed,cpt))
 
         if collect_obj == False and save_iter == True:
             return x, every_iter
